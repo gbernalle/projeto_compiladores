@@ -1,4 +1,4 @@
-package Lexical;
+package lexical;
 
 public class Lexeme {
   //public variables for easy access

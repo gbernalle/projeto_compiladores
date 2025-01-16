@@ -1,4 +1,4 @@
-package Lexical;
+package lexical;
 
 public class LexicalAnalysis {
   
