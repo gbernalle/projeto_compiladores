@@ -10,11 +10,12 @@ public enum TokenType {
   SEMICOLON, // ;
   ASSIGN,    // =
   COMMA,     // ,
-  OPEN_PARENTHESES, // (
-  CLOSE_PARENTHESES, // )
+  OP_ROUNDBRACK, // (
+  CL_ROUNDBRACK, // )
   EXCLAMATION, // !
-  OPEN_BRACKETS, // {
-  CLOSE_BRACKETS, // }
+  OP_CURLYBRACK, // {
+  CL_CURLYBRACK, // }
+  UNDERSCORE, // _
 
   //Logical operators
   EQUAL, // ==
