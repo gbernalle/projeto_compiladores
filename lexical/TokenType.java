@@ -49,5 +49,6 @@ public enum TokenType {
   INT, // int
   FLOAT, //floaT
   STRING, //string
-  NUMBER //digitos
+  NUMBER, //digitos
+  VAR
 }
