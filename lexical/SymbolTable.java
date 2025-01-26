@@ -12,12 +12,12 @@ public class SymbolTable {
     st.put(";", TokenType.SEMICOLON);
     st.put(",", TokenType.COMMA);
     st.put("=", TokenType.ASSIGN);
-    st.put("_", TokenType.UNDERSCORE);
+    st.put("_", TokenType.STRING);
     st.put("(", TokenType.OP_ROUNDBRACK);
     st.put(")", TokenType.CL_ROUNDBRACK);
-    st.put("{", TokenType.OP_CURLYBRACK);
-    st.put("}", TokenType.CL_CURLYBRACK);
-    st.put("!", TokenType.EXCLAMATION);
+    st.put("{", TokenType.LITERALS);
+    st.put("}", TokenType.LITERALS);
+    st.put("!", TokenType.NOT);
 
     // Logic operators
     st.put("==", TokenType.EQUAL);
@@ -57,6 +57,6 @@ public class SymbolTable {
   }
 
   public TokenType find(String token) {
-    return this.contains(token) ? st.get(token) : TokenType.VAR;
+    return this.contains(token) ? st.get(token) : TokenType.ID;
   }
 }

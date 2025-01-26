@@ -7,23 +7,24 @@ public enum TokenType {
   END_OF_FILE,
           
   //Symbols
-  SEMICOLON, // ;
   ASSIGN,    // =
   COMMA,     // ,
   OP_ROUNDBRACK, // (
   CL_ROUNDBRACK, // )
-  EXCLAMATION, // !
-  OP_CURLYBRACK, // {
-  CL_CURLYBRACK, // }
-  UNDERSCORE, // _
-
-  //Logical operators
+  SEMICOLON, // ;
+  
+  // Operadores relacionais
   EQUAL, // ==
   NOT_EQUAL, // !=
   LOWER, // <
   LOWER_EQUAL, // <=
   GREATER, // >
   GREATER_EQUAL, // >=
+  
+ // Logical operators
+  OR, // ||
+  AND, // &&
+  NOT, // !
 
   // Arithmetic operators
   ADD, // +
@@ -31,24 +32,26 @@ public enum TokenType {
   MUL, // *
   DIV, // /
   MOD, // %
-  OR, // ||
-  AND, // &&
-
-  // Keywords
-  START, //start
-  EXIT, //exit
-  WHILE, // while
-  DO, // do
-  IF, // if
-  THEN, // then
-  ELSE, // else
-  SCAN, //scan
-  PRINT, //print
   
-  // Others
+  // Keywords
+  DO, // do
+  ELSE, // else
+  END, // end
+  EXIT, //exit
+  IF, // if
   INT, // int
   FLOAT, //floaT
+  PRINT, //print
+  SCAN, //scan
+  START, //start
   STRING, //string
+  THEN, // then
+  WHILE, // while
+  
+  // Others
   NUMBER, //digitos
-  VAR
+  ID,
+  INTEGER_CONST,
+  FLOAT_CONST,
+  LITERALS // {} literais
 }
