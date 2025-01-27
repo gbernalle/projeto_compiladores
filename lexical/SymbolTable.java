@@ -50,6 +50,8 @@ public class SymbolTable {
     st.put("print", TokenType.PRINT);
     st.put("int", TokenType.INT);
     st.put("float", TokenType.FLOAT);
+    st.put("string", TokenType.STRING);
+    st.put("scan", TokenType.SCAN);
   }
   
   public boolean contains(String token) {

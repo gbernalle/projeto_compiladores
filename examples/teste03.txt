@@ -1,7 +1,7 @@
   int pontuacao, pontuacaoMaxina, disponibilidade;
   string pontuacaoMinima;
 
-  disponibilidade = “Sim”;
+  disponibilidade = "Sim";
   pontuacaoMinima = 50;
   pontuacaoMaxima = 100;
 

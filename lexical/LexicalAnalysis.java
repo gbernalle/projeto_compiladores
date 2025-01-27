@@ -122,6 +122,12 @@ public class LexicalAnalysis implements AutoCloseable {
             state = 12;
           }
 
+          // String
+          else if (c == '"') {
+            lex.token += (char) c;
+            state = 11;
+          }
+
           // Literais
           else if(c == '{'){
             lex.token += (char) c;
@@ -154,7 +160,7 @@ public class LexicalAnalysis implements AutoCloseable {
               state = 17;
             } else { // Operador de Divisão
               ungetc(c);
-              state = 18;
+              state = 16;
             }
           }
           break;
@@ -263,6 +269,9 @@ public class LexicalAnalysis implements AutoCloseable {
           if (c == '_' || Character.isLetter(c) || Character.isDigit(c)) {
             lex.token += (char) c;
             state = 11;
+          } else if (c == '"') {
+            lex.type = TokenType.ID;
+            state = 18;
           } else {
             if (c != -1) {
               ungetc(c);
@@ -271,24 +280,7 @@ public class LexicalAnalysis implements AutoCloseable {
           }
           break;
 
-        case 15: // Fluxo de Literais
-          if ((c >= 0 && c <= 9)
-						|| (c >= 11 && c <= 122)
-						|| (c == 124)
-              || (c >= 126 && c <= 255)) {
-            lex.token += (char) c;
-            state = 15; 
-          } else if (c == '}') {
-            lex.token += (char) c;
-            lex.type = TokenType.LITERALS;
-            state = 18;
-          } else {
-            lex.type = TokenType.INVALID_TOKEN;
-            state = 17;
-          }
-          break;
-
-        case 12: // Fluxo de Números
+          case 12: // Fluxo de Números
           if (Character.isDigit(c)) {
             lex.token += (char) c;
             state = 12;
@@ -305,7 +297,7 @@ public class LexicalAnalysis implements AutoCloseable {
           break;
 
         case 13: // Fluxo float após ponto
-          if (Character.isDigit(c)) { 
+          if (Character.isDigit(c)) {
             lex.token += (char) c;
             state = 14;
           } else {
@@ -331,8 +323,25 @@ public class LexicalAnalysis implements AutoCloseable {
             lex.type = TokenType.FLOAT_CONST;
             state = 18;
           }
-          break;     
+          break;
 
+        case 15: // Fluxo de Literais
+          if ((c >= 0 && c <= 9)
+						|| (c >= 11 && c <= 122)
+						|| (c == 124)
+              || (c >= 126 && c <= 255)) {
+            lex.token += (char) c;
+            state = 15; 
+          } else if (c == '}') {
+            lex.token += (char) c;
+            lex.type = TokenType.LITERALS;
+            state = 18;
+          } else {
+            lex.type = TokenType.INVALID_TOKEN;
+            state = 17;
+          }
+          break;
+    
         default:
           throw new LexicalException("Invalid State");
       }
