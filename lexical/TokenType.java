@@ -1,4 +1,4 @@
-package Lexical;
+package lexical;
 
 public enum TokenType {
   //Specials
@@ -7,22 +7,24 @@ public enum TokenType {
   END_OF_FILE,
           
   //Symbols
-  SEMICOLON, // ;
   ASSIGN,    // =
   COMMA,     // ,
-  OPEN_PARENTHESES, // (
-  CLOSE_PARENTHESES, // )
-  EXCLAMATION, // !
-  OPEN_BRACKETS, // {
-  CLOSE_BRACKETS, // }
-
-  //Logical operators
+  OP_ROUNDBRACK, // (
+  CL_ROUNDBRACK, // )
+  SEMICOLON, // ;
+  
+  // Operadores relacionais
   EQUAL, // ==
   NOT_EQUAL, // !=
   LOWER, // <
   LOWER_EQUAL, // <=
   GREATER, // >
   GREATER_EQUAL, // >=
+  
+ // Logical operators
+  OR, // ||
+  AND, // &&
+  NOT, // !
 
   // Arithmetic operators
   ADD, // +
@@ -30,23 +32,26 @@ public enum TokenType {
   MUL, // *
   DIV, // /
   MOD, // %
-  OR, // ||
-  AND, // &&
-
-  // Keywords
-  START, //start
-  EXIT, //exit
-  WHILE, // while
-  DO, // do
-  IF, // if
-  THEN, // then
-  ELSE, // else
-  SCAN, //scan
-  PRINT, //print
   
-  // Others
+  // Keywords
+  DO, // do
+  ELSE, // else
+  END, // end
+  EXIT, //exit
+  IF, // if
   INT, // int
   FLOAT, //floaT
+  PRINT, //print
+  SCAN, //scan
+  START, //start
   STRING, //string
-  NUMBER //digitos
+  THEN, // then
+  WHILE, // while
+  
+  // Others
+  NUMBER, //digitos
+  ID,
+  INTEGER_CONST,
+  FLOAT_CONST,
+  LITERALS // {} literais
 }
