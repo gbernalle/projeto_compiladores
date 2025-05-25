@@ -1,21 +1,16 @@
-  int pontuacao, pontuacaoMaxina, disponibilidade;
-  string pontuacaoMinima;
+program
 
-  disponibilidade = "Sim";
-  pontuacaoMinima = 50;
-  pontuacaoMaxima = 100;
+ int: a, b, aux;
 
-  /* Entrada de dados
-    Verifica aprovação de candidatos
-  do
-    print({Pontuacao Candidato: });
-    scan(pontuacao);
-    print({Disponibilidade Candidato: });
-    scan(disponibilidade);
-    if ((pontuação > pontuacaoMinima) & (disponibilidade=={Sim}) then
-      out(“Candidato aprovado”);
-    else
-      out({Candidato reprovado})
-    end
-  while (pontuação >= 0)end
-exit
+ begin
+ in (a);
+ in(b);
+ if (a>b) then
+ int aux;
+ aux = b;
+ b = a;
+ a = aux
+ end;
+ out(a;
+ out(b)
+ end

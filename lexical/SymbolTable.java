@@ -10,23 +10,22 @@ public class SymbolTable {
 
     //Symbols
     st.put(";", TokenType.SEMICOLON);
+    st.put(":", TokenType.TWOPOINTS);
     st.put(",", TokenType.COMMA);
     st.put("=", TokenType.ASSIGN);
     st.put("_", TokenType.STRING);
     st.put("(", TokenType.OP_ROUNDBRACK);
     st.put(")", TokenType.CL_ROUNDBRACK);
-    st.put("{", TokenType.LITERALS);
-    st.put("}", TokenType.LITERALS);
-    st.put("!", TokenType.NOT);
-
+    
     // Logic operators
+    st.put("!", TokenType.NOT);
     st.put("==", TokenType.EQUAL);
     st.put(">", TokenType.GREATER);
     st.put(">=", TokenType.GREATER_EQUAL);
     st.put("<", TokenType.LOWER);
     st.put("<=", TokenType.LOWER_EQUAL);
     st.put("!=", TokenType.NOT_EQUAL);
-
+    
     // Arithmetic operators
     st.put("+", TokenType.ADD);
     st.put("-", TokenType.SUB);
@@ -39,19 +38,27 @@ public class SymbolTable {
     st.put("&&", TokenType.AND);
 
     //Keywords
-    st.put("start", TokenType.START);
-    st.put("exit", TokenType.EXIT);
-    st.put("while", TokenType.WHILE);
-    st.put("do", TokenType.DO);
-    st.put("if", TokenType.IF);
-    st.put("then", TokenType.THEN);
-    st.put("else", TokenType.ELSE);
-    st.put("scan", TokenType.SCAN);
-    st.put("print", TokenType.PRINT);
+    st.put("program", TokenType.PROGRAM);
+    st.put("begin", TokenType.BEGIN);
     st.put("int", TokenType.INT);
     st.put("float", TokenType.FLOAT);
-    st.put("string", TokenType.STRING);
-    st.put("scan", TokenType.SCAN);
+    st.put("char", TokenType.CHAR);
+    st.put("if", TokenType.IF);
+    st.put("then", TokenType.THEN);
+    st.put("end", TokenType.END);
+    st.put("else", TokenType.ELSE);
+    st.put("repeat", TokenType.REPEAT);
+    st.put("until", TokenType.UNTIL);
+    st.put("while", TokenType.WHILE);
+    st.put("do", TokenType.DO);
+    st.put("in", TokenType.IN);
+    st.put("out", TokenType.OUT);
+
+    // Others
+    st.put("\"", TokenType.LITERALS);
+    st.put("'", TokenType.SQUOTES);
+    st.put("{", TokenType.OP_BRACKETS);
+    st.put("}", TokenType.CL_BRACKETS);
   }
   
   public boolean contains(String token) {

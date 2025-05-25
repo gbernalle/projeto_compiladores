@@ -12,6 +12,7 @@ public enum TokenType {
   OP_ROUNDBRACK, // (
   CL_ROUNDBRACK, // )
   SEMICOLON, // ;
+  TWOPOINTS, // :
   
   // Operadores relacionais
   EQUAL, // ==
@@ -23,9 +24,8 @@ public enum TokenType {
   
  // Logical operators
   OR, // ||
-  AND, // &&
   NOT, // !
-
+  
   // Arithmetic operators
   ADD, // +
   SUB, // -
@@ -34,24 +34,32 @@ public enum TokenType {
   MOD, // %
   
   // Keywords
-  DO, // do
-  ELSE, // else
-  END, // end
-  EXIT, //exit
-  IF, // if
+  PROGRAM, // program
+  BEGIN, // begin
   INT, // int
   FLOAT, //floaT
-  PRINT, //print
-  SCAN, //scan
-  START, //start
-  STRING, //string
+  CHAR, //char
+  IF, // if
   THEN, // then
+  END, // end
+  ELSE, // else
+  REPEAT, // repeat
+  UNTIL, //until
   WHILE, // while
+  DO, // do
+  IN, // in
+  OUT, //out
+  STRING, //string
+  AND, // &&
   
   // Others
   NUMBER, //digitos
   ID,
   INTEGER_CONST,
   FLOAT_CONST,
-  LITERALS // {} literais
+  CHAR_CONST,
+  SQUOTES,
+  LITERALS,
+  OP_BRACKETS, // {
+  CL_BRACKETS // {
 }

@@ -1,16 +1,16 @@
-start
-  int: a, c_;
-  float d, _e;
-  a = 0; d = 3.5
-  c = d / 1.2;
-  Scan (a);
-  Scan (c);
-  b = a * a;
-  c = b + a * (1 + a*c);
-  print ({Resultado: });
-  print c;
-  d = 34.2
-  e = val + 2.2;
-  print ({E: });
-  print (e);
-  a = b + c + a)/2;
+program
+ float: raio, area$ = 0.0;
+
+begin
+repeat
+ in(raio);
+ char: resposta;
+ if (raio > 0.0) then
+ area = 3. * raio * raio;
+ out (area);
+ end;
+ out ("Deseja continuar?);
+ in (resp);
+until (resp == 'N' || resp == 'n');
+
+end

@@ -1,26 +1,31 @@
-start
-  int a, b, c, maior, outro;
+programa
+declare
+ inteiro: pontuacao, pontuacaoMaxina, disponibilidade;
+ char: pontuacaoMinima
+begin
+ disponibilidade = 'S';
+ pontuacaoMinima = 50;
+ pontuacaoMaxima = 100;
+ out("Pontuacao Candidato: ");
+ in(pontuacao);
+ out("Disponibilidade Candidato: ");
+ in(disponibilidade);
+ { Comentario
+ grande
 
-  do
-    print({A});
-    scan(a);
-    print({B});
-    scan(b);
-    print({C});
-    scan(c);
-    //Realizacao do teste
-    if ( (a>b) && (a>c) )
-      maior = a
-    else
-      if (b>c) then
-        maior = b;
-      else
-        maior = c;
-      end
-    end
-    print({Maior valor:}});
-    print (maior);
-    print ({Outro? });
-    scan(outro);
-  while (outro >= 0);
-exit
+ while (pontuacao>0 && (pontuação<=pontuacaoMaxima) do
+ int: cont;
+ cont = cont + 1;
+ if ((pontuação > pontuacaoMinima) && (disponibilidade==1)) then
+ out("Candidato aprovado")
+ else
+ out("Candidato reprovado")
+ end
+ out("Pontuacao Candidato: ");
+ in(pontuacao);
+ out("Disponibilidade
+Candidato: ");
+ in(disponibilidade);
+ end
+ out (cont);
+end

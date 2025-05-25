@@ -35,9 +35,9 @@ public class LexicalAnalysis implements AutoCloseable {
   /*
    * DICIONARIO:
    * 
-   * START_STATE 1
+   * START_STATE 1 
    * COMMENT_STATE 2
-   * MULTI_LINE_COMMENT_STATE 3;
+   * MULTI_LINE_COMMENT_STATE 3
    * MULTI_LINE_END_COMMENT_STATE 4
    * ONE_LINE_COMMENT_STATE 5
    * AND_LINE_STATE 6
@@ -69,7 +69,7 @@ public class LexicalAnalysis implements AutoCloseable {
           } else if (c == '\n') {
             line++;
             state = 1;
-          } else if (c == '/') { // Primeira aparição, pode ser comentário
+          } else if (c == '%') { // Primeira aparição, pode ser comentário
             lex.token += (char) c;
             state = 2;
           }
