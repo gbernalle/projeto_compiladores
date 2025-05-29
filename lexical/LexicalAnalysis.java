@@ -61,18 +61,24 @@ public class LexicalAnalysis implements AutoCloseable {
     while (state != 18 && state != 17 && state != 16) {
       int c = getc();
       switch (state) {
-        case 1: // Start_state
+        //#region Orquestrador de chamadas de fluxo
+        case 1:
         
-          //Comentário e variável inutilizadas
-          if (c == ' ' || c == '\t' || c == '\r') {
-            state =  1;
-          } else if (c == '\n') {
-            line++;
-            state = 1;
-          } else if (c == '%') { // Primeira aparição, pode ser comentário
+        //Comentário e variável inutilizadas
+          if (c == ' ' || c == '\t' || c == '\r') state =  1;
+
+        //#region Fluxo de comentários
+          // Fluxo comentário única linha
+          else if (c == '%') {
             lex.token += (char) c;
             state = 2;
+          
+            // Fluxo comentário de múltiplas linhas
+          } else if (c == '{') {
+            lex.token += (char) c;
+            state = 3;
           }
+        //#endregion
 
           // Operadores Aritméticos
           else if (c == '+' || c == '*' || c == '-' || c == '%') {
@@ -146,38 +152,33 @@ public class LexicalAnalysis implements AutoCloseable {
             }
           }
           break; // Fim Tokens iniciais
-      
-        case 2: // Fluxo de comentário
-          if (c == '*') {
-            lex.token = "";
-            state = 3;
-          } else if (c == '/') {
-            lex.token = "";
-            state = 5;
+      //#endregion
+
+        //#region Fluxo comentário única linha
+        case 2:
+          if (c == '\n') {
+            line++;
+            state = 1;
           } else {
             if (c == -1) {
               lex.type = TokenType.UNEXPECTED_EOF;
               state = 17;
-            } else { // Operador de Divisão
-              ungetc(c);
-              state = 16;
             }
           }
           break;
-        
-        case 3: // Fluxo de Comentário multiLinha
-          if (c == '*') {
-            state = 4;
-          } else if (c == '\n') {
-            line++;
-            state = 3;
+        //#endregion
+       
+        //#region Fluxo comentário múltiplas linhas
+        case 3:
+          if (c == '}') {
+            lex.token += (char) c;
+            state = 1;
           } else if (c == -1) {
             lex.type = TokenType.END_OF_FILE;
             state = 18;
-          } else {
-            state = 3;
           }
           break;
+          //#endregion
         
         case 4: // Fluxo de Fim do comentário de múltiplas linhas
           if (c == '/') {
