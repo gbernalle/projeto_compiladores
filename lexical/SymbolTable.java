@@ -17,7 +17,7 @@ public class SymbolTable {
     st.put("(", TokenType.OP_ROUNDBRACK);
     st.put(")", TokenType.CL_ROUNDBRACK);
     
-    // Logic operators
+    // Comparison operators
     st.put("!", TokenType.NOT);
     st.put("==", TokenType.EQUAL);
     st.put(">", TokenType.GREATER);

@@ -74,8 +74,8 @@ public class LexicalAnalysis implements AutoCloseable {
             state = 2;
           }
 
-          // Operadores Aritméticos
-          else if (c == '+' || c == '*' || c == '-' || c == '%') {
+          // Operadores de comparação
+          else if (c == '+' || c == '*' || c == '-') {
             lex.token += (char) c;
             state = 16; // Find_state
           }
@@ -147,26 +147,20 @@ public class LexicalAnalysis implements AutoCloseable {
           }
           break; // Fim Tokens iniciais
       
-        case 2: // Fluxo de comentário
-          if (c == '*') {
-            lex.token = "";
-            state = 3;
-          } else if (c == '/') {
-            lex.token = "";
-            state = 5;
+        case 2: // Fluxo de comentário linha única
+          if (c == '\n') {
+            line++;
+            state = 1;
+          } else if (c == -1) {
+            lex.type = TokenType.END_OF_FILE;
+            state = 18;
           } else {
-            if (c == -1) {
-              lex.type = TokenType.UNEXPECTED_EOF;
-              state = 17;
-            } else { // Operador de Divisão
-              ungetc(c);
-              state = 16;
-            }
+            state = 2;
           }
           break;
         
         case 3: // Fluxo de Comentário multiLinha
-          if (c == '*') {
+          if (c == '{') {
             state = 4;
           } else if (c == '\n') {
             line++;
@@ -174,9 +168,6 @@ public class LexicalAnalysis implements AutoCloseable {
           } else if (c == -1) {
             lex.type = TokenType.END_OF_FILE;
             state = 18;
-          } else {
-            state = 3;
-          }
           break;
         
         case 4: // Fluxo de Fim do comentário de múltiplas linhas
