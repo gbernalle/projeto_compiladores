@@ -36,14 +36,14 @@ public class SyntaticAnalysis {
 
     switch (current.type) {
       case INVALID_TOKEN:
-        System.out.printf("Lexema inválido [%s]\n", current.token);
+        System.out.printf("Lexema invalido [%s]\n", current.token);
         break;
       case UNEXPECTED_EOF:
       case END_OF_FILE:
         System.out.printf("Fim de arquivo inesperado\n");
         break;
       default:
-        System.out.printf("Lexema não esperado [%s]\n", current.token);
+        System.out.printf("Lexema nao esperado [%s]\n", current.token);
         break;
     }
 
@@ -76,7 +76,7 @@ public class SyntaticAnalysis {
     procType();
     eat(TokenType.TWOPOINTS);
     procIdentList();
-    eat(TokenType.SEMICOLON);
+    //eat(TokenType.SEMICOLON);
   }
 
   // ident-list::= identifier {"," identifier}
@@ -157,25 +157,21 @@ public class SyntaticAnalysis {
     eat(TokenType.IF);
     procCondition();
     eat(TokenType.THEN);
-    
+
     if (current.type == TokenType.INT || current.type == TokenType.FLOAT || current.type == TokenType.CHAR) {
       procDecList();
     }
-    
+
+    // Se houver ELSE depois, precisamos esperar para decidir o que fazer
     procStmtList();
-    switch (current.type) {
-      case TokenType.END:
-        eat(TokenType.END);
-        break;
-      case TokenType.ELSE:
-        eat(TokenType.ELSE);
-        procStmtList();
-        eat(TokenType.END);
-      default:
-        showError();
-        break;
+
+    if (current.type == TokenType.ELSE) {
+      eat(TokenType.ELSE);
+      procStmtList();
     }
-  }
+
+    eat(TokenType.END);
+  }  
 
   // condition::= expression 
   private void procCondition() {
@@ -250,63 +246,38 @@ public class SyntaticAnalysis {
   // expression::= simple-expr | simple-expr relop simple-expr
   private void procExpression() {
     procSimpleExpr();
-
-    switch (current.type) {
-      case TokenType.EQUAL:
-      case TokenType.GREATER:
-      case TokenType.GREATER_EQUAL:
-      case TokenType.LOWER:
-      case TokenType.LOWER_EQUAL:
-      case TokenType.NOT_EQUAL:
-        procRelOp();
-        procSimpleExpr();
-        break;
-      default:
-        showError();
-        break;
+    if (current.type == TokenType.EQUAL ||
+        current.type == TokenType.GREATER ||
+        current.type == TokenType.GREATER_EQUAL ||
+        current.type == TokenType.LOWER ||
+        current.type == TokenType.LOWER_EQUAL ||
+        current.type == TokenType.NOT_EQUAL) {
+      procRelOp();
+      procSimpleExpr();
     }
-  }
+  }  
 
   // simple-expr::= term | simple-expr addop term 
   private void procSimpleExpr() {
-
-    switch (current.type) {
-      case TokenType.NOT:
-      case TokenType.SUB:
-      case TokenType.ID:
-      case TokenType.INTEGER_CONST:
-      case TokenType.FLOAT_CONST:
-      case TokenType.CHAR_CONST:
-      case TokenType.OP_ROUNDBRACK:
-        procTerm();
-        break;
-      default:
-        procSimpleExpr();
-        procAddOp();
-        procTerm();
-        break;
+    procTerm();
+    while (current.type == TokenType.ADD ||
+        current.type == TokenType.SUB ||
+        current.type == TokenType.OR) {
+      procAddOp();
+      procTerm();
     }
-  }
+  }  
   
   // term::= factor-a|term mulop factor-a
   private void procTerm() {
-    switch (current.type) {
-      case TokenType.NOT:
-      case TokenType.SUB:
-      case TokenType.ID:
-      case TokenType.INTEGER_CONST:
-      case TokenType.FLOAT_CONST:
-      case TokenType.CHAR_CONST:
-      case TokenType.OP_ROUNDBRACK:
-        procFatorA();
-        break;
-      default:
-        procTerm();
-        procMulOp();
-        procFatorA();
-        break;
+    procFatorA();
+    while (current.type == TokenType.MUL ||
+        current.type == TokenType.DIV ||
+        current.type == TokenType.AND) {
+      procMulOp();
+      procFatorA();
     }
-  }
+  }  
 
   // fator-a::= factor | "!" factor | "-" factor
   private void procFatorA() {

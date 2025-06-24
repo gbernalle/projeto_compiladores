@@ -1,6 +1,6 @@
-import lexical.Lexeme;
-import lexical.TokenType;
-//import Sintatico.SyntaticAnalysis;
+/* import lexical.Lexeme;
+import lexical.TokenType; */
+import Sintatico.SyntaticAnalysis;
 import lexical.LexicalAnalysis;
 
 public class Main {
@@ -10,16 +10,15 @@ public class Main {
       return;
     }
     try (LexicalAnalysis l = new LexicalAnalysis(args[0])) {
-       // O código a seguir é usado apenas para testar o analisador léxico.
-      
+      /* O código a seguir é usado apenas para testar o analisador léxico.
+
       Lexeme lex = l.nextToken();
-     
-      // Código para verificar se analisador Léxico funciona | while ....
+      
       while (checkType(lex.type)) {
          System.out.printf("(\"%s\", %s)\n", lex.token, lex.type);
          lex = l.nextToken();
        }
-
+      
        switch (lex.type) {
          case INVALID_TOKEN:
            System.out.printf("%02d: Lexema inválido [%s]\n", l.getLine(), lex.token);
@@ -31,18 +30,19 @@ public class Main {
            System.out.printf("(\"%s\", %s)\n", lex.token, lex.type);
            break;
        } 
-       
-    /*  SyntaticAnalysis s = new SyntaticAnalysis(l);
-     s.start(); */ 
-      
+      */
+
+      SyntaticAnalysis s = new SyntaticAnalysis(l);
+      s.start();
+
     } catch (Exception e) {
       System.err.println("Internal error: " + e.getMessage());
     }
   }
   
-  private static boolean checkType(TokenType type) {
+/*   private static boolean checkType(TokenType type) {
 		return !(type == TokenType.END_OF_FILE ||
 					type == TokenType.INVALID_TOKEN ||
 					type == TokenType.UNEXPECTED_EOF);
-	}
+	} */
 }
