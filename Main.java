@@ -1,7 +1,7 @@
-//import Sintatico.SyntaticAnalysis;
 import lexical.Lexeme;
-import lexical.LexicalAnalysis;
 import lexical.TokenType;
+//import Sintatico.SyntaticAnalysis;
+import lexical.LexicalAnalysis;
 
 public class Main {
   public static void main(String[] args) {
@@ -10,9 +10,12 @@ public class Main {
       return;
     }
     try (LexicalAnalysis l = new LexicalAnalysis(args[0])) {
-      // O código a seguir é usado apenas para testar o analisador léxico.
+       // O código a seguir é usado apenas para testar o analisador léxico.
+      
       Lexeme lex = l.nextToken();
-       while (checkType(lex.type)) {
+     
+      // Código para verificar se analisador Léxico funciona | while ....
+      while (checkType(lex.type)) {
          System.out.printf("(\"%s\", %s)\n", lex.token, lex.type);
          lex = l.nextToken();
        }
@@ -27,11 +30,11 @@ public class Main {
          default:
            System.out.printf("(\"%s\", %s)\n", lex.token, lex.type);
            break;
-       }
-
-      //SyntaticAnalysis s = new SyntaticAnalysis(l);
-      //s.start();
-
+       } 
+       
+    /*  SyntaticAnalysis s = new SyntaticAnalysis(l);
+     s.start(); */ 
+      
     } catch (Exception e) {
       System.err.println("Internal error: " + e.getMessage());
     }

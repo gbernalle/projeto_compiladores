@@ -32,115 +32,87 @@ public class LexicalAnalysis implements AutoCloseable {
     return this.line;
   }
 
-  /*
-   * DICIONARIO:
-   * 
-   * START_STATE 1 
-   * COMMENT_STATE 2
-   * MULTI_LINE_COMMENT_STATE 3
-   * MULTI_LINE_END_COMMENT_STATE 4
-   * ONE_LINE_COMMENT_STATE 5
-   * AND_LINE_STATE 6
-   * OR_LINE_STATE 7
-   * EQUAL_ASSIGN_LINE_STATE 8
-   * GREATER_GREATER_EQUAL_LINE_STATE 9
-   * LOWER_LOWER_EQUAL_LINE_STATE 10
-   * KEYWORDS_IDS_LINE_STATE 11
-   * NUMBER_LINE_STATE 12
-   * FLOAT_DOT_STATE 13
-   * FLOAT_DECIMAL_STATE 14
-   * LITERAL_LINE_STATE 15
-   * ST_FIND_STATE 16
-   * ERROR_STATE 17
-   * DEFAULT_END_STATE 18
-   */
-
   public Lexeme nextToken() {
     Lexeme lex = new Lexeme("", TokenType.END_OF_FILE);
     int state = 1; 
-    while (state != 18 && state != 17 && state != 16) {
+    while (state != 16 && state != 17 && state != 18) {
       int c = getc();
       switch (state) {
         //#region Orquestrador de chamadas de fluxo
         case 1:
-        
-        //Comentário e variável inutilizadas
-          if (c == ' ' || c == '\t' || c == '\r') state =  1;
-
-        //#region Fluxo de comentários
-          // Fluxo comentário única linha
-          else if (c == '%') {
+          if (c == ' ' || c == '\t' || c == '\r'){
+            state = 1;
+          } else if(c == '\n'){
+            line++;
+            state = 1;
+          } else if(c == '%'){
             lex.token += (char) c;
             state = 2;
-          
-            // Fluxo comentário de múltiplas linhas
-          } else if (c == '{') {
+          } else if(c == '{'){
             lex.token += (char) c;
             state = 3;
           }
-        //#endregion
 
-          // Operadores de comparação
-          else if (c == '+' || c == '*' || c == '-') {
-            lex.token += (char) c;
-            state = 16; // Find_state
-          }
-
-          // Operadores lógicos
-
-          else if (c == '&') {
-            lex.token += (char) c;
-            state = 6; // AND_State
-          } else if (c == '!') {
-            lex.token += (char) c;
-            state = 16; // Find_State
-          } else if (c == '|') {
-            lex.token += (char) c;
-            state = 7; // OR_State
-          }
-          
-          // Operadores relacionais
-
-          else if (c == '>') {
-            lex.token += (char) c;
-            state = 9;
-          } else if (c == '<') {
-            lex.token += (char) c;
-            state = 10;
-          }
-
-          // Symbols
-
-          else if (c == '=') { //Igual ou atribuição
-            lex.token += (char) c;
-            state = 8;
-          } else if (c == ',' || c == '(' || c == ')' || c == ';' || c == ':') {
+          // Arithmetic operators flow
+          else if (c == '+' || c == '*' || c == '-' || c == '/') {
             lex.token += (char) c;
             state = 16;
           }
 
-          // Ids ou keywords
-          else if (Character.isLetter(c) || c == '_') {
-						lex.token += (char) c;
-						state = 11;
-          } else if (Character.isDigit(c)) {
+          // Logic operators
+          else if (c == '&') {
             lex.token += (char) c;
-            state = 12;
+            state = 4;
+          } else if (c == '!') {
+            lex.token += (char) c;
+            state = 14;
+          } else if ( c == '|') {
+            lex.token += (char) c;
+            state = 5;
           }
 
-          // String
+            // Relational operator except ==
+          else if (c == '>') { // GREATER or GREATER_EQUAL
+            lex.token += (char) c;
+            state = 6;
+          } else if (c == '<') { // LOWER or LOWER_EQUAL or NOT_EQUAL
+            lex.token += (char) c;
+            state = 7;
+          }
+
+          // Symbols
+          else if (c == '=') { // EQUAL or ASSIGN
+            lex.token += (char) c;
+            state = 8;
+          } else if (c == ',' || c == ';' || c == ':' || c == '(' || c == ')') {
+            lex.token += (char) c;
+            state = 16;
+          }
+
+          // Zebras - Keywords or ids
+          else if (c == '_' || Character.isLetter(c)) {
+            lex.token += (char) c;
+            state = 9;
+          }
+
+          // Zebras - Literals
           else if (c == '"') {
+            lex.token += (char) c;
+            state = 10;
+          }
+
+          else if (c == '\'') {
+            lex.token += (char) c;
+            state = 15;
+          }
+
+          // Zebras - Numbers
+          else if (Character.isDigit(c)) {
             lex.token += (char) c;
             state = 11;
           }
 
-          // Literais
-          else if(c == '{'){
-            lex.token += (char) c;
-					  state = 15;
-          }
-          
-          // Fim de arquivo ou token invalido
+          // end of file or invalid token
           else {
             if (c == -1) {
               lex.type = TokenType.END_OF_FILE;
@@ -151,36 +123,26 @@ public class LexicalAnalysis implements AutoCloseable {
               state = 17;
             }
           }
-          break; // Fim Tokens iniciais
-      //#endregion
-
-        //#region Fluxo comentário única linha
-        case 2:
+          break;
+        
+        case 2: // Comentário única linha
           if (c == '\n') {
             line++;
             state = 1;
+          } else if(c == -1) {
+            lex.type = TokenType.END_OF_FILE;
+            state = 18;
           } else {
             state = 2;
           }
           break;
-        //#endregion
-       
-        //#region Fluxo comentário múltiplas linhas
-        case 3:
-          if (c == '}') {
-            lex.token += (char) c;
+        case 3: // Comentário de múltiplas linhas
+          if (c == '\n'){
+            line++;
+            state = 3;
+          }else if (c == '}') {
             state = 1;
-          } else if (c == -1) {
-            lex.type = TokenType.END_OF_FILE;
-            state = 18;
-          }
-          break;
-          //#endregion
-        
-        case 4: // Fluxo de Fim do comentário de múltiplas linhas
-          if (c == '/') {
-            state = 1;  
-          } else if (c == -1) {
+          } else if(c == -1) {
             lex.type = TokenType.END_OF_FILE;
             state = 18;
           } else {
@@ -188,25 +150,13 @@ public class LexicalAnalysis implements AutoCloseable {
           }
           break;
 
-        case 5: // Fluxo de Comentário de linha única
-          if (c == '\n') {
-            line++;
-            state = 1;
-          } else if (c == -1) {
-            lex.type = TokenType.END_OF_FILE;
-            state = 18;
-          } else {
-            state = 5;
-          }
-          break;
-
-        case 6: // Fluxo And
+        case 4: // Fluxo de &&
           if (c == '&') {
             lex.token += (char) c;
             state = 16;
           } else {
             if (c == -1) {
-              lex.type = TokenType.UNEXPECTED_EOF;
+              lex.type = TokenType.END_OF_FILE;
               state = 17;
             } else {
               lex.type = TokenType.INVALID_TOKEN;
@@ -214,8 +164,7 @@ public class LexicalAnalysis implements AutoCloseable {
             }
           }
           break;
-
-        case 7: // Fluxo OR
+        case 5: // Fluxo de OR
           if (c == '|') {
             lex.token += (char) c;
             state = 16;
@@ -229,77 +178,78 @@ public class LexicalAnalysis implements AutoCloseable {
             }
           }
           break;
-
-        case 8: // Fluxo de igual ou atribuição
+        case 6: // Greater or greater equal
           if (c == '=') {
             lex.token += (char) c;
           } else {
-            if (c != -1) {
+            if (c != -1)
               ungetc(c);
-            }
           }
           state = 16;
           break;
-
-        case 9: // Fluxo de Maior igual
+        case 7: // Lower or lower equal or not equal
+          if (c == '=') {
+            lex.token += (char) c;
+          } else if (c == '>') {
+            lex.token += (char) c;
+          } else {
+            if (c != -1)
+              ungetc(c);
+          }
+          state = 16;
+          break;
+        case 8: // Equal or assign flow
           if (c == '=') {
             lex.token += (char) c;
           } else {
-            if (c != -1) {
+            if (c != -1)
               ungetc(c);
-            }
           }
           state = 16;
           break;
-
-        case 10: // Fluxo de Menor igual
-          if (c == '=') {
+        case 9: // Keywords or ids flow
+          if (c == '_' || Character.isLetter(c) || Character.isDigit(c) || c == '$') {
             lex.token += (char) c;
+            state = 9;
           } else {
-            if (c != -1) {
+            if (c != -1)
               ungetc(c);
-            }
+            state = 16  ;
           }
-          state = 16;
           break;
-
-        case 11: // Palavras reservadas e ids
-          if (c == '_' || Character.isLetter(c) || Character.isDigit(c)) {
+        case 10:// begin of a literal
+          if (c == '"') {
             lex.token += (char) c;
-            state = 11;
-          } else if (c == '"') {
-            lex.type = TokenType.ID;
+            lex.type = TokenType.LITERALS;
             state = 18;
+          } else if (c == -1 || c == '\n') { // erro: string não fechada
+            lex.type = TokenType.UNEXPECTED_EOF;
+            state = 17;
           } else {
-            if (c != -1) {
-              ungetc(c);
-            }
-            state = 16;
+            lex.token += (char) c;
+            state = 10;
           }
           break;
-
-          case 12: // Fluxo de Números
+        case 11: // Numerical flow
           if (Character.isDigit(c)) {
             lex.token += (char) c;
-            state = 12;
-          } else if (c == '.') { // Número é Float
+            state = 11;
+          } else if (c == '.') { // its a float
             lex.token += (char) c;
-            state = 13;
+            state = 12;
           } else {
-            if (c != -1) {
+            if (c != -1)
               ungetc(c);
-            }
             lex.type = TokenType.INTEGER_CONST;
             state = 18;
           }
           break;
-
-        case 13: // Fluxo float após ponto
+        case 12: // After dot float flow
           if (Character.isDigit(c)) {
             lex.token += (char) c;
-            state = 14;
+            state = 13;
           } else {
-            if (c != -1) {
+            if (c == -1) {
               lex.type = TokenType.UNEXPECTED_EOF;
               state = 17;
             } else {
@@ -309,37 +259,42 @@ public class LexicalAnalysis implements AutoCloseable {
             }
           }
           break;
-
-        case 14: // Fluxo float
+        case 13: // Decimal float flow
           if (Character.isDigit(c)) {
             lex.token += (char) c;
-            state = 14;
+            state = 13;
           } else {
-            if (c != -1) {
+            if (c != -1)
               ungetc(c);
-            }
             lex.type = TokenType.FLOAT_CONST;
             state = 18;
           }
           break;
-
-        case 15: // Fluxo de Literais
-          if ((c >= 0 && c <= 9)
-						|| (c >= 11 && c <= 122)
-						|| (c == 124)
-              || (c >= 126 && c <= 255)) {
+        case 14:
+          if (c == '=') {
             lex.token += (char) c;
-            state = 15; 
-          } else if (c == '}') {
-            lex.token += (char) c;
-            lex.type = TokenType.LITERALS;
-            state = 18;
+            state = 16;
           } else {
-            lex.type = TokenType.INVALID_TOKEN;
-            state = 17;
+            if (c != -1)
+              ungetc(c);
+            lex.type = TokenType.NOT;
+            state = 16;
           }
           break;
-    
+        case 15:
+            if (c == '\'') {
+              lex.token += (char) c;
+              lex.type = TokenType.CHAR_CONST;
+              state = 18;
+            } else if (c == -1 || c == '\n') { // erro: string não fechada
+              lex.type = TokenType.UNEXPECTED_EOF;
+              state = 17;
+            } else {
+              lex.token += (char) c;
+              state = 15;
+            }
+          
+          break;
         default:
           throw new LexicalException("Invalid State");
       }
