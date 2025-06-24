@@ -50,32 +50,36 @@ public class SyntaticAnalysis {
     System.exit(1);
   }
 
-  // program::=start[decl-list]stmt-list exit 
+  // program::= program [decl-list] begin stmt-list end
   private void procProgram() {
-    eat(TokenType.START);
-    if (current.type == TokenType.INT || current.type == TokenType.FLOAT || current.type == TokenType.STRING) {
+    eat(TokenType.PROGRAM);
+    if (current.type == TokenType.INT || current.type == TokenType.FLOAT || current.type == TokenType.CHAR) {
       procDecList();
     }
+  
+    eat(TokenType.BEGIN);  
     procStmtList();
-    eat(TokenType.EXIT);
+    eat(TokenType.END);
   }
 
-  // decl-list::=decl{decl}
+  // decl-list::= decl {";" decl}
   private void procDecList() {
     procDecl();
-    while (current.type == TokenType.INT || current.type == TokenType.FLOAT || current.type == TokenType.STRING) {
+    while (current.type == TokenType.SEMICOLON) {
+      eat(TokenType.SEMICOLON);
       procDecl();
     }
   }
 
-  // decl::= type ident-list";"
+  // decl::= type “:” ident-list “;”
   private void procDecl() {
     procType();
+    eat(TokenType.TWOPOINTS);
     procIdentList();
     eat(TokenType.SEMICOLON);
   }
 
-  // ident-list::=identifier{"," identifier}
+  // ident-list::= identifier {"," identifier}
   private void procIdentList() {
     procIdentifier();
     // Espera por vírgula
@@ -85,7 +89,7 @@ public class SyntaticAnalysis {
     }
   }
 
-  // type::=int|float|string
+  // type::=int|float|char
   private void procType() {
       switch (current.type) {
       case TokenType.INT:
@@ -94,8 +98,8 @@ public class SyntaticAnalysis {
       case TokenType.FLOAT:
         eat(TokenType.FLOAT);
         break;
-      case TokenType.STRING:
-        eat(TokenType.STRING);
+      case TokenType.CHAR:
+        eat(TokenType.CHAR);
         break;
       default:
         showError();
@@ -103,37 +107,36 @@ public class SyntaticAnalysis {
       }
     }
 
-  // stmt-list::=stmt{stmt}
+  // stmt-list::= stmt {";" stmt}
   private void procStmtList() {
     procStmt();
-    // Verifica se tem stmt
-    while(current.type == TokenType.ID || current.type == TokenType.IF ||
-		      current.type == TokenType.DO || current.type == TokenType.SCAN ||
-          current.type == TokenType.PRINT) {
-            procStmt();
-       }
+    // Espera por vírgula
+    while (current.type == TokenType.SEMICOLON) {
+      eat(TokenType.SEMICOLON);
+      procStmt();
+    }
   }
 
-  // stmt::=assign-stmt";"|if-stmt|while-stmt|read-stmt";"|write-stmt";"
+  // stmt::= assign-stmt | if-stmt | while-stmt | repeat-stmt |read-stmt|write-stmt
   private void procStmt() {
     switch (current.type) {
       case TokenType.ID:
         procAssignStmt();
-        eat(TokenType.SEMICOLON);
         break;
       case TokenType.IF:
         procIfStmt();
         break;
-      case TokenType.DO:
+      case TokenType.WHILE:
         procWhileStmt();
         break;
-      case TokenType.SCAN:
-        procReadStmt();
-        eat(TokenType.SEMICOLON);
+      case TokenType.REPEAT:
+        procRepeatStmt();
         break;
-      case TokenType.PRINT:
+      case TokenType.IN:
+        procReadStmt();
+        break;
+      case TokenType.OUT:
         procWriteStmt();
-        eat(TokenType.SEMICOLON);
         break;
       default:
         showError();
@@ -141,18 +144,24 @@ public class SyntaticAnalysis {
     }
   }
 
-  // assign-stmt::=identifier"="simple_expr
+  // assign-stmt::= identifier "=" simple_expr
   private void procAssignStmt() {
     procIdentifier();
     eat(TokenType.ASSIGN);
     procSimpleExpr();
   }
 
-  // if-stmt::=if condition then stmt-list end|if condition then stmt-list else stmt-list end 
+  // if-stmt::= if condition then [decl-list] stmt-list end 
+  //           |if condition then[decl-list]stmt-list else declaration stmt-list end
   private void procIfStmt() {
     eat(TokenType.IF);
     procCondition();
     eat(TokenType.THEN);
+    
+    if (current.type == TokenType.INT || current.type == TokenType.FLOAT || current.type == TokenType.CHAR) {
+      procDecList();
+    }
+    
     procStmtList();
     switch (current.type) {
       case TokenType.END:
@@ -168,42 +177,65 @@ public class SyntaticAnalysis {
     }
   }
 
-  // condition::=expression 
+  // condition::= expression 
   private void procCondition() {
     procExpression();
   }
 
-  // while-stmt::=do stmt-list stmt-sufix
-  private void procWhileStmt() {
-    eat(TokenType.DO);
+  // repeat-stmt ::= repeat [decl-list] stmt-list stmt-suffix
+  private void procRepeatStmt() {
+    eat(TokenType.REPEAT);
+    
+    if (current.type == TokenType.INT || current.type == TokenType.FLOAT || current.type == TokenType.CHAR) {
+      procDecList();
+    }
+
     procStmtList();
-    procStmtSufix();
+    procStmtSuffix();
+  }
+  
+  // stmt-suffix ::= until condition 
+  private void procStmtSuffix() {
+    eat(TokenType.UNTIL);
+    procCondition();
   }
 
-  // stmt-sufix::=while condition end 
-  private void procStmtSufix() {
-    eat(TokenType.WHILE);
-    procCondition();
+  // while-stmt ::= stmt-prefix [decl-list] stmt-list end
+  private void procWhileStmt() {
+    procStmtPrefix();
+
+    if (current.type == TokenType.INT || current.type == TokenType.FLOAT || current.type == TokenType.CHAR) {
+      procDecList();
+    }
+
+    procStmtList();
     eat(TokenType.END);
   }
 
-  // read-stmt::=scan"("identifier")"
+  // stmt-prefix ::= while condition do
+  private void procStmtPrefix(){
+    eat(TokenType.WHILE);
+    procCondition();
+    eat(TokenType.DO);
+  }
+
+  // read-stmt ::= in "(" identifier ")"
   private void procReadStmt() {
-    eat(TokenType.SCAN);
+    eat(TokenType.IN);
     eat(TokenType.OP_ROUNDBRACK);
     procIdentifier();
     eat(TokenType.CL_ROUNDBRACK);
   }
 
-  // write-stmt::=print"("writable")"
+  // write-stmt ::= out "(" writable ")"
   private void procWriteStmt() {
-    eat(TokenType.PRINT);
+    eat(TokenType.OUT);
     eat(TokenType.OP_ROUNDBRACK);
     procWritable();
     eat(TokenType.CL_ROUNDBRACK);
   }
 
-  // writable::=simple-expr|literal
+  // writable ::= simple-expr | literal
   private void procWritable() {
     switch (current.type) {
       case TokenType.LITERALS:
@@ -214,9 +246,11 @@ public class SyntaticAnalysis {
         break;
     }
   }
-  // expression::=simple-expr|simple-expr relop simple-expr
+
+  // expression::= simple-expr | simple-expr relop simple-expr
   private void procExpression() {
     procSimpleExpr();
+
     switch (current.type) {
       case TokenType.EQUAL:
       case TokenType.GREATER:
@@ -233,15 +267,16 @@ public class SyntaticAnalysis {
     }
   }
 
-  // simple-expr::=term|simple-expr addop term 
+  // simple-expr::= term | simple-expr addop term 
   private void procSimpleExpr() {
+
     switch (current.type) {
       case TokenType.NOT:
       case TokenType.SUB:
       case TokenType.ID:
       case TokenType.INTEGER_CONST:
       case TokenType.FLOAT_CONST:
-      case TokenType.LITERALS:
+      case TokenType.CHAR_CONST:
       case TokenType.OP_ROUNDBRACK:
         procTerm();
         break;
@@ -252,7 +287,8 @@ public class SyntaticAnalysis {
         break;
     }
   }
-  // term::=factor-a|term mulop factor-a
+  
+  // term::= factor-a|term mulop factor-a
   private void procTerm() {
     switch (current.type) {
       case TokenType.NOT:
@@ -260,7 +296,7 @@ public class SyntaticAnalysis {
       case TokenType.ID:
       case TokenType.INTEGER_CONST:
       case TokenType.FLOAT_CONST:
-      case TokenType.LITERALS:
+      case TokenType.CHAR_CONST:
       case TokenType.OP_ROUNDBRACK:
         procFatorA();
         break;
@@ -272,7 +308,7 @@ public class SyntaticAnalysis {
     }
   }
 
-  // fator-a::=factor|"!"factor|"-"factor
+  // fator-a::= factor | "!" factor | "-" factor
   private void procFatorA() {
     switch (current.type) {
       case TokenType.NOT:
@@ -288,7 +324,7 @@ public class SyntaticAnalysis {
     }
   }
 
-  // factor::=identifier|constant|"("expression")"
+  // factor::= identifier | constant | "(" expression ")"
   private void procFactor() {
     switch (current.type) {
       case TokenType.ID:
@@ -296,7 +332,7 @@ public class SyntaticAnalysis {
         break;
       case TokenType.INTEGER_CONST:
       case TokenType.FLOAT_CONST:
-      case TokenType.LITERALS:
+      case TokenType.CHAR_CONST:
         procConstant();
         break;
       case TokenType.OP_ROUNDBRACK:
@@ -310,10 +346,7 @@ public class SyntaticAnalysis {
     }
   }
   
-  private void procIdentifier() {
-    eat(TokenType.ID);
-  }
-
+  // relop ::= "==" | ">" | ">=" | "<" | "<=" | "!="
   private void procRelOp() {
     switch (current.type) {
       case TokenType.EQUAL:
@@ -339,7 +372,8 @@ public class SyntaticAnalysis {
         break;
     }
   }
-
+  
+  // addop ::= "+" | "-" | ||
   private void procAddOp() {
     switch (current.type) {
       case TokenType.ADD:
@@ -357,26 +391,25 @@ public class SyntaticAnalysis {
     }
   }
   
+  // mulop ::= "*" | "/" | &&
   private void procMulOp() {
     switch (current.type) {
       case TokenType.MUL:
-        eat(TokenType.MUL);
-        break;
+      eat(TokenType.MUL);
+      break;
       case TokenType.DIV:
-        eat(TokenType.DIV);
-        break;
-      case TokenType.MOD:
-        eat(TokenType.MOD);
-        break;
+      eat(TokenType.DIV);
+      break;
       case TokenType.AND:
-        eat(TokenType.AND);
-        break;
+      eat(TokenType.AND);
+      break;
       default:
-        showError();
-        break;
+      showError();
+      break;
     }
   }
-
+  
+  // constant ::= integer_const | float_const | char_const
   private void procConstant() {
     switch (current.type) {
       case TokenType.INTEGER_CONST:
@@ -385,16 +418,21 @@ public class SyntaticAnalysis {
       case TokenType.FLOAT_CONST:
         eat(TokenType.FLOAT_CONST);
         break;
-      case TokenType.LITERALS:
-        procLiteral();
+      case TokenType.CHAR_CONST:
+        eat(TokenType.CHAR_CONST);
+        ;
         break;
       default:
         showError();
         break;
     }
   }
-
+  
   private void procLiteral() {
     eat(TokenType.LITERALS);
+  }
+
+  private void procIdentifier() {
+    eat(TokenType.ID);
   }
 }
