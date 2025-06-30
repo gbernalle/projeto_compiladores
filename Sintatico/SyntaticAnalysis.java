@@ -62,11 +62,10 @@ public class SyntaticAnalysis {
     eat(TokenType.END);
   }
 
-  // decl-list::= decl {";" decl}
+  // decl-list::= decl {decl}
   private void procDecList() {
     procDecl();
-    while (current.type == TokenType.SEMICOLON) {
-      eat(TokenType.SEMICOLON);
+    while (current.type == TokenType.INT || current.type == TokenType.FLOAT || current.type == TokenType.CHAR) {
       procDecl();
     }
   }
@@ -76,7 +75,7 @@ public class SyntaticAnalysis {
     procType();
     eat(TokenType.TWOPOINTS);
     procIdentList();
-    //eat(TokenType.SEMICOLON);
+    eat(TokenType.SEMICOLON);
   }
 
   // ident-list::= identifier {"," identifier}
