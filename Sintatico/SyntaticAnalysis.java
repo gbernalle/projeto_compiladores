@@ -91,13 +91,13 @@ public class SyntaticAnalysis {
   // type::=int|float|char
   private void procType() {
       switch (current.type) {
-      case TokenType.INT:
+      case INT:
         eat(TokenType.INT);
         break;
-      case TokenType.FLOAT:
+      case FLOAT:
         eat(TokenType.FLOAT);
         break;
-      case TokenType.CHAR:
+      case CHAR:
         eat(TokenType.CHAR);
         break;
       default:
@@ -119,22 +119,22 @@ public class SyntaticAnalysis {
   // stmt::= assign-stmt | if-stmt | while-stmt | repeat-stmt |read-stmt|write-stmt
   private void procStmt() {
     switch (current.type) {
-      case TokenType.ID:
+      case ID:
         procAssignStmt();
         break;
-      case TokenType.IF:
+      case IF:
         procIfStmt();
         break;
-      case TokenType.WHILE:
+      case WHILE:
         procWhileStmt();
         break;
-      case TokenType.REPEAT:
+      case REPEAT:
         procRepeatStmt();
         break;
-      case TokenType.IN:
+      case IN:
         procReadStmt();
         break;
-      case TokenType.OUT:
+      case OUT:
         procWriteStmt();
         break;
       default:
@@ -233,7 +233,7 @@ public class SyntaticAnalysis {
   // writable ::= simple-expr | literal
   private void procWritable() {
     switch (current.type) {
-      case TokenType.LITERALS:
+      case LITERALS:
         procLiteral();
         break;
       default:
@@ -281,11 +281,11 @@ public class SyntaticAnalysis {
   // fator-a::= factor | "!" factor | "-" factor
   private void procFatorA() {
     switch (current.type) {
-      case TokenType.NOT:
+      case NOT:
         eat(TokenType.NOT);
         procFactor();
         break;
-      case TokenType.SUB:
+      case SUB:
         eat(TokenType.SUB);
         procFactor();
       default:
@@ -297,15 +297,15 @@ public class SyntaticAnalysis {
   // factor::= identifier | constant | "(" expression ")"
   private void procFactor() {
     switch (current.type) {
-      case TokenType.ID:
+      case ID:
         procIdentifier();
         break;
-      case TokenType.INTEGER_CONST:
-      case TokenType.FLOAT_CONST:
-      case TokenType.CHAR_CONST:
+      case INTEGER_CONST:
+      case FLOAT_CONST:
+      case CHAR_CONST:
         procConstant();
         break;
-      case TokenType.OP_ROUNDBRACK:
+      case OP_ROUNDBRACK:
         eat(TokenType.OP_ROUNDBRACK);
         procExpression();
         eat(TokenType.CL_ROUNDBRACK);
@@ -319,22 +319,22 @@ public class SyntaticAnalysis {
   // relop ::= "==" | ">" | ">=" | "<" | "<=" | "!="
   private void procRelOp() {
     switch (current.type) {
-      case TokenType.EQUAL:
+      case EQUAL:
         eat(TokenType.EQUAL);
         break;
-      case TokenType.GREATER:
+      case GREATER:
         eat(TokenType.GREATER);
         break;
-      case TokenType.GREATER_EQUAL:
+      case GREATER_EQUAL:
         eat(TokenType.GREATER_EQUAL);
         break;
-      case TokenType.LOWER:
+      case LOWER:
         eat(TokenType.LOWER);
         break;
-      case TokenType.LOWER_EQUAL:
+      case LOWER_EQUAL:
         eat(TokenType.LOWER_EQUAL);
         break;
-      case TokenType.NOT_EQUAL:
+      case NOT_EQUAL:
         eat(TokenType.NOT_EQUAL);
         break;
       default:
@@ -346,13 +346,13 @@ public class SyntaticAnalysis {
   // addop ::= "+" | "-" | ||
   private void procAddOp() {
     switch (current.type) {
-      case TokenType.ADD:
+      case ADD:
         eat(TokenType.ADD);
         break;
-      case TokenType.SUB:
+      case SUB:
         eat(TokenType.SUB);
         break;
-      case TokenType.OR:
+      case OR:
         eat(TokenType.OR);
         break;
       default:
@@ -364,13 +364,13 @@ public class SyntaticAnalysis {
   // mulop ::= "*" | "/" | &&
   private void procMulOp() {
     switch (current.type) {
-      case TokenType.MUL:
+      case MUL:
       eat(TokenType.MUL);
       break;
-      case TokenType.DIV:
+      case DIV:
       eat(TokenType.DIV);
       break;
-      case TokenType.AND:
+      case AND:
       eat(TokenType.AND);
       break;
       default:
@@ -382,13 +382,13 @@ public class SyntaticAnalysis {
   // constant ::= integer_const | float_const | char_const
   private void procConstant() {
     switch (current.type) {
-      case TokenType.INTEGER_CONST:
+      case INTEGER_CONST:
         eat(TokenType.INTEGER_CONST);
         break;
-      case TokenType.FLOAT_CONST:
+      case FLOAT_CONST:
         eat(TokenType.FLOAT_CONST);
         break;
-      case TokenType.CHAR_CONST:
+      case CHAR_CONST:
         eat(TokenType.CHAR_CONST);
         ;
         break;

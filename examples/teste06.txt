@@ -1,7 +1,7 @@
 program
 int : x, y, z;
 float : media;
-char : letra
+char : letra;
 
 begin
     x = 10;
