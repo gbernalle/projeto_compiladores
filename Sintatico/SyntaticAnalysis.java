@@ -1,5 +1,6 @@
 package Sintatico;
 
+import Semantico.SymbolTable;
 import lexical.Lexeme;
 import lexical.LexicalAnalysis;
 import lexical.TokenType;
@@ -8,6 +9,7 @@ public class SyntaticAnalysis {
 
   private LexicalAnalysis lex;
   private Lexeme current;
+  private SymbolTable semTable = new SymbolTable();
 
   public SyntaticAnalysis(LexicalAnalysis lex) {
     this.lex = lex;
@@ -72,19 +74,24 @@ public class SyntaticAnalysis {
 
   // decl::= type “:” ident-list “;”
   private void procDecl() {
+    TokenType type = current.type;
     procType();
     eat(TokenType.TWOPOINTS);
-    procIdentList();
+    procIdentList(type);
     eat(TokenType.SEMICOLON);
   }
 
   // ident-list::= identifier {"," identifier}
-  private void procIdentList() {
-    procIdentifier();
-    // Espera por vírgula
+  private void procIdentList(TokenType type) {
+    String id = current.token;
+    eat(TokenType.ID);
+    semTable.declare(id, type, lex.getLine()); // registrar na tabela
+
     while (current.type == TokenType.COMMA) {
       eat(TokenType.COMMA);
-      procIdentifier();
+      id = current.token;
+      eat(TokenType.ID);
+      semTable.declare(id, type, lex.getLine());
     }
   }
 
@@ -145,27 +152,65 @@ public class SyntaticAnalysis {
 
   // assign-stmt::= identifier "=" simple_expr
   private void procAssignStmt() {
-    procIdentifier();
+    String id = current.token;
+    eat(TokenType.ID);
+
+    TokenType varType = semTable.getType(id, lex.getLine()); // verifica declaração
     eat(TokenType.ASSIGN);
-    procSimpleExpr();
+    TokenType exprType = procSimpleExpr();
+
+    if (!typesCompatible(varType, exprType)) {
+      System.err.printf("Erro na linha %d: Incompatibilidade de tipos em '%s = %s'\n", lex.getLine(), varType,
+          exprType);
+      System.exit(1);
+    }
+  }
+
+  private boolean typesCompatible(TokenType varType, TokenType exprType) {
+    if (varType == exprType)
+      return true;
+
+    // char + int → int: permitido na expressão, mas só pode ser atribuído se a
+    // variável for int
+    if ((varType == TokenType.INT) && (exprType == TokenType.CHAR))
+      return true;
+    if ((varType == TokenType.INT) && (exprType == TokenType.FLOAT))
+      return false;
+    if ((varType == TokenType.FLOAT) && (exprType == TokenType.INT))
+      return true;
+
+    // char e float são incompatíveis entre si
+    if ((varType == TokenType.FLOAT && exprType == TokenType.CHAR) ||
+        (varType == TokenType.CHAR && exprType == TokenType.FLOAT))
+      return false;
+
+    return false;
   }
 
   // if-stmt::= if condition then [decl-list] stmt-list end 
   //           |if condition then[decl-list]stmt-list else declaration stmt-list end
   private void procIfStmt() {
     eat(TokenType.IF);
-    procCondition();
+    TokenType condType = procCondition();
+
+    if (condType != TokenType.INT) {
+      System.err.printf("Erro na linha %d: Condição do IF deve ser relacional (tipo inteiro).\n", lex.getLine());
+      System.exit(1);
+    }
+
     eat(TokenType.THEN);
 
-    if (current.type == TokenType.INT || current.type == TokenType.FLOAT || current.type == TokenType.CHAR) {
+    if (isType(current.type)) {
       procDecList();
     }
 
-    // Se houver ELSE depois, precisamos esperar para decidir o que fazer
     procStmtList();
 
     if (current.type == TokenType.ELSE) {
       eat(TokenType.ELSE);
+      if (isType(current.type)) {
+        procDecList();
+      }
       procStmtList();
     }
 
@@ -173,15 +218,19 @@ public class SyntaticAnalysis {
   }  
 
   // condition::= expression 
-  private void procCondition() {
-    procExpression();
+  private TokenType procCondition() {
+    return procExpression();
+  }
+
+  private boolean isType(TokenType type) {
+    return type == TokenType.INT || type == TokenType.FLOAT || type == TokenType.CHAR;
   }
 
   // repeat-stmt ::= repeat [decl-list] stmt-list stmt-suffix
   private void procRepeatStmt() {
     eat(TokenType.REPEAT);
-    
-    if (current.type == TokenType.INT || current.type == TokenType.FLOAT || current.type == TokenType.CHAR) {
+
+    if (isType(current.type)) {
       procDecList();
     }
 
@@ -192,14 +241,24 @@ public class SyntaticAnalysis {
   // stmt-suffix ::= until condition 
   private void procStmtSuffix() {
     eat(TokenType.UNTIL);
-    procCondition();
+    TokenType condType = procCondition();
+
+    if (condType != TokenType.INT) {
+      System.err.printf("Erro na linha %d: Condição do UNTIL deve ser relacional (tipo inteiro).\n", lex.getLine());
+      System.exit(1);
+    }
   }
 
   // while-stmt ::= stmt-prefix [decl-list] stmt-list end
   private void procWhileStmt() {
-    procStmtPrefix();
+    TokenType condType = procStmtPrefix();
 
-    if (current.type == TokenType.INT || current.type == TokenType.FLOAT || current.type == TokenType.CHAR) {
+    if (condType != TokenType.INT) {
+      System.err.printf("Erro na linha %d: Condição do WHILE deve ser relacional (tipo inteiro).\n", lex.getLine());
+      System.exit(1);
+    }
+
+    if (isType(current.type)) {
       procDecList();
     }
 
@@ -208,17 +267,26 @@ public class SyntaticAnalysis {
   }
 
   // stmt-prefix ::= while condition do
-  private void procStmtPrefix(){
+  private TokenType procStmtPrefix(){
     eat(TokenType.WHILE);
-    procCondition();
+    TokenType condType = procCondition();
     eat(TokenType.DO);
+    return condType;
   }
 
   // read-stmt ::= in "(" identifier ")"
   private void procReadStmt() {
     eat(TokenType.IN);
     eat(TokenType.OP_ROUNDBRACK);
-    procIdentifier();
+
+    String id = current.token;
+    eat(TokenType.ID);
+
+    if (!semTable.isDeclared(id)) {
+      System.err.printf("Erro na linha %d: Variável '%s' não declarada para leitura.\n", lex.getLine(), id);
+      System.exit(1);
+    }
+
     eat(TokenType.CL_ROUNDBRACK);
   }
 
@@ -232,88 +300,137 @@ public class SyntaticAnalysis {
 
   // writable ::= simple-expr | literal
   private void procWritable() {
-    switch (current.type) {
-      case LITERALS:
-        procLiteral();
-        break;
-      default:
-        procSimpleExpr();
-        break;
+    if (current.type == TokenType.LITERALS) {
+      procLiteral();
+    } else {
+      procSimpleExpr(); // já verifica tipos internamente
     }
   }
 
   // expression::= simple-expr | simple-expr relop simple-expr
-  private void procExpression() {
-    procSimpleExpr();
-    if (current.type == TokenType.EQUAL ||
-        current.type == TokenType.GREATER ||
-        current.type == TokenType.GREATER_EQUAL ||
-        current.type == TokenType.LOWER ||
-        current.type == TokenType.LOWER_EQUAL ||
-        current.type == TokenType.NOT_EQUAL) {
+  private TokenType procExpression() {
+    TokenType left = procSimpleExpr();
+    if (current.type == TokenType.EQUAL || current.type == TokenType.GREATER ||
+        current.type == TokenType.GREATER_EQUAL || current.type == TokenType.LOWER ||
+        current.type == TokenType.LOWER_EQUAL || current.type == TokenType.NOT_EQUAL) {
+
+      TokenType op = current.type;
       procRelOp();
-      procSimpleExpr();
+      TokenType right = procSimpleExpr();
+
+      // Relacionais precisam de tipos compatíveis
+      if (!typesCompatible(left, right)) {
+        System.err.printf("Erro na linha %d: Tipos incompatíveis em expressão relacional: %s %s %s\n",
+            lex.getLine(), left, op, right);
+        System.exit(1);
+      }
+
+      return TokenType.INT; // Considerando booleano como int (0 ou 1)
     }
-  }  
+    return left;
+  }
 
   // simple-expr::= term | simple-expr addop term 
-  private void procSimpleExpr() {
-    procTerm();
-    while (current.type == TokenType.ADD ||
-        current.type == TokenType.SUB ||
-        current.type == TokenType.OR) {
+  private TokenType procSimpleExpr() {
+    TokenType left = procTerm();
+    while (current.type == TokenType.ADD || current.type == TokenType.SUB || current.type == TokenType.OR) {
+      TokenType op = current.type;
       procAddOp();
-      procTerm();
+      TokenType right = procTerm();
+      left = resolveResultType(left, right, op);
     }
-  }  
+    return left;
+  }
+
+  private TokenType resolveResultType(TokenType left, TokenType right, TokenType op) {
+    if ((left == TokenType.FLOAT && right == TokenType.FLOAT) ||
+        (left == TokenType.FLOAT && right == TokenType.INT) ||
+        (left == TokenType.INT && right == TokenType.FLOAT)) {
+      return TokenType.FLOAT;
+    }
+
+    if (left == TokenType.INT && right == TokenType.INT)
+      return TokenType.INT;
+
+    if ((left == TokenType.CHAR && right == TokenType.INT) ||
+        (left == TokenType.INT && right == TokenType.CHAR) ||
+        (left == TokenType.CHAR && right == TokenType.CHAR)) {
+      return TokenType.INT;
+    }
+
+    if ((left == TokenType.CHAR && right == TokenType.FLOAT) ||
+        (left == TokenType.FLOAT && right == TokenType.CHAR)) {
+      System.err.printf("Erro na linha %d: Tipos incompatíveis em operação: %s %s %s\n",
+          lex.getLine(), left, op, right);
+      System.exit(1);
+    }
+
+    System.err.printf("Erro na linha %d: Operação inválida: %s %s %s\n", lex.getLine(), left, op, right);
+    System.exit(1);
+    return null;
+  }
   
   // term::= factor-a|term mulop factor-a
-  private void procTerm() {
-    procFatorA();
-    while (current.type == TokenType.MUL ||
-        current.type == TokenType.DIV ||
-        current.type == TokenType.AND) {
+  private TokenType procTerm() {
+    TokenType left = procFatorA();
+    while (current.type == TokenType.MUL || current.type == TokenType.DIV || current.type == TokenType.AND) {
+      TokenType op = current.type;
       procMulOp();
-      procFatorA();
+      TokenType right = procFatorA();
+      left = resolveResultType(left, right, op);
     }
-  }  
+    return left;
+  } 
 
   // fator-a::= factor | "!" factor | "-" factor
-  private void procFatorA() {
-    switch (current.type) {
-      case NOT:
-        eat(TokenType.NOT);
-        procFactor();
-        break;
-      case SUB:
-        eat(TokenType.SUB);
-        procFactor();
-      default:
-        procFactor();
-        break;
+  private TokenType procFatorA() {
+    if (current.type == TokenType.NOT) {
+      eat(TokenType.NOT);
+      return procFactor();
+    } else if (current.type == TokenType.SUB) {
+      eat(TokenType.SUB);
+      return procFactor(); // o sinal negativo não muda o tipo
+    } else {
+      return procFactor();
     }
   }
 
   // factor::= identifier | constant | "(" expression ")"
-  private void procFactor() {
+  private TokenType procFactor() {
+    TokenType result;
     switch (current.type) {
       case ID:
-        procIdentifier();
+        String id = current.token;
+        eat(TokenType.ID);
+        result = semTable.getType(id, lex.getLine()); // verificação de declaração
         break;
+
       case INTEGER_CONST:
-      case FLOAT_CONST:
-      case CHAR_CONST:
-        procConstant();
+        eat(TokenType.INTEGER_CONST);
+        result = TokenType.INT;
         break;
+
+      case FLOAT_CONST:
+        eat(TokenType.FLOAT_CONST);
+        result = TokenType.FLOAT;
+        break;
+
+      case CHAR_CONST:
+        eat(TokenType.CHAR_CONST);
+        result = TokenType.CHAR;
+        break;
+
       case OP_ROUNDBRACK:
         eat(TokenType.OP_ROUNDBRACK);
-        procExpression();
+        result = procExpression(); // já retorna o tipo da subexpressão
         eat(TokenType.CL_ROUNDBRACK);
         break;
+
       default:
         showError();
-        break;
+        return null; // só para compilador parar de reclamar
     }
+    return result;
   }
   
   // relop ::= "==" | ">" | ">=" | "<" | "<=" | "!="
@@ -379,7 +496,7 @@ public class SyntaticAnalysis {
     }
   }
   
-  // constant ::= integer_const | float_const | char_const
+/*   // constant ::= integer_const | float_const | char_const
   private void procConstant() {
     switch (current.type) {
       case INTEGER_CONST:
@@ -396,13 +513,10 @@ public class SyntaticAnalysis {
         showError();
         break;
     }
-  }
+  } */
   
   private void procLiteral() {
     eat(TokenType.LITERALS);
   }
 
-  private void procIdentifier() {
-    eat(TokenType.ID);
-  }
 }
