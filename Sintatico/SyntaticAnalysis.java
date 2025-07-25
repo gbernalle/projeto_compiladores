@@ -10,6 +10,7 @@ public class SyntaticAnalysis {
   private LexicalAnalysis lex;
   private Lexeme current;
   private SymbolTable semTable = new SymbolTable();
+  private int errorCount = 0;
 
   public SyntaticAnalysis(LexicalAnalysis lex) {
     this.lex = lex;
@@ -31,6 +32,14 @@ public class SyntaticAnalysis {
   public void start() {
     procProgram();
     eat(TokenType.END_OF_FILE);
+    
+    if (errorCount == 0) {
+      System.out.println("Programa reconhecido com sucesso.");
+    } else {
+      System.out.printf("Análise concluída com %d erro(s).\n", errorCount);
+    }
+
+    System.out.println("Análise sintática e semântica concluída com sucesso.");
   }
 
   private void showError() {
@@ -49,7 +58,8 @@ public class SyntaticAnalysis {
         break;
     }
 
-    System.exit(1);
+    errorCount++;
+    synchronize(); // tenta recuperar o parsing
   }
 
   // program::= program [decl-list] begin stmt-list end
@@ -162,7 +172,8 @@ public class SyntaticAnalysis {
     if (!typesCompatible(varType, exprType)) {
       System.err.printf("Erro na linha %d: Incompatibilidade de tipos em '%s = %s'\n", lex.getLine(), varType,
           exprType);
-      System.exit(1);
+      errorCount++;
+      synchronize(); // tenta recuperar o parsing
     }
   }
 
@@ -195,7 +206,8 @@ public class SyntaticAnalysis {
 
     if (condType != TokenType.INT) {
       System.err.printf("Erro na linha %d: Condição do IF deve ser relacional (tipo inteiro).\n", lex.getLine());
-      System.exit(1);
+      errorCount++;
+      synchronize(); // tenta recuperar o parsing
     }
 
     eat(TokenType.THEN);
@@ -245,7 +257,8 @@ public class SyntaticAnalysis {
 
     if (condType != TokenType.INT) {
       System.err.printf("Erro na linha %d: Condição do UNTIL deve ser relacional (tipo inteiro).\n", lex.getLine());
-      System.exit(1);
+      errorCount++;
+      synchronize(); // tenta recuperar o parsing
     }
   }
 
@@ -255,7 +268,8 @@ public class SyntaticAnalysis {
 
     if (condType != TokenType.INT) {
       System.err.printf("Erro na linha %d: Condição do WHILE deve ser relacional (tipo inteiro).\n", lex.getLine());
-      System.exit(1);
+      errorCount++;
+      synchronize(); // tenta recuperar o parsing
     }
 
     if (isType(current.type)) {
@@ -284,7 +298,9 @@ public class SyntaticAnalysis {
 
     if (!semTable.isDeclared(id)) {
       System.err.printf("Erro na linha %d: Variável '%s' não declarada para leitura.\n", lex.getLine(), id);
-      System.exit(1);
+      
+      errorCount++;
+      synchronize();
     }
 
     eat(TokenType.CL_ROUNDBRACK);
@@ -322,7 +338,8 @@ public class SyntaticAnalysis {
       if (!typesCompatible(left, right)) {
         System.err.printf("Erro na linha %d: Tipos incompatíveis em expressão relacional: %s %s %s\n",
             lex.getLine(), left, op, right);
-        System.exit(1);
+        errorCount++;
+        synchronize();
       }
 
       return TokenType.INT; // Considerando booleano como int (0 ou 1)
@@ -362,13 +379,29 @@ public class SyntaticAnalysis {
         (left == TokenType.FLOAT && right == TokenType.CHAR)) {
       System.err.printf("Erro na linha %d: Tipos incompatíveis em operação: %s %s %s\n",
           lex.getLine(), left, op, right);
-      System.exit(1);
+      errorCount++;
+      synchronize();
     }
 
     System.err.printf("Erro na linha %d: Operação inválida: %s %s %s\n", lex.getLine(), left, op, right);
-    System.exit(1);
+    errorCount++;
+    synchronize();
     return null;
   }
+  
+  private void synchronize() {
+  // Tenta avançar até um token "seguro", como ; ou END, BEGIN, etc.
+  while (current.type != TokenType.SEMICOLON &&
+         current.type != TokenType.END &&
+         current.type != TokenType.BEGIN &&
+         current.type != TokenType.ELSE &&
+         current.type != TokenType.END_OF_FILE) {
+    advance();
+  }
+
+  if (current.type == TokenType.SEMICOLON)
+    advance(); // avança para tentar novo statement
+}
   
   // term::= factor-a|term mulop factor-a
   private TokenType procTerm() {
